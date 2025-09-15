@@ -56,14 +56,6 @@ services:
       - mongodb-data:/data/db
       - ./mongo-init:/docker-entrypoint-initdb.d
 
-  # Redis for caching and session management
-  redis:
-    container_name: redis
-    image: redis:7.2-alpine
-    ports:
-      - '6379:6379'
-    volumes:
-      - redis-data:/data
 
   # MailHog for email testing
   mailhog:
@@ -88,7 +80,6 @@ services:
       - TEMPORAL_NAMESPACE=default
       - TEMPORAL_TASK_QUEUE=application-processing
       - MONGODB_URI=mongodb://admin:password@mongodb:27017/applications?authSource=admin
-      - REDIS_URL=redis://redis:6379
       - SMTP_HOST=mailhog
       - SMTP_PORT=1025
       - FROM_EMAIL=noreply@example.com
@@ -97,7 +88,6 @@ services:
     depends_on:
       - temporal
       - mongodb
-      - redis
       - mailhog
       - payment-service
       - document-service
@@ -168,7 +158,6 @@ services:
       - TEMPORAL_NAMESPACE=default
       - TEMPORAL_TASK_QUEUE=application-processing
       - MONGODB_URI=mongodb://admin:password@mongodb:27017/applications?authSource=admin
-      - REDIS_URL=redis://redis:6379
       - SMTP_HOST=mailhog
       - SMTP_PORT=1025
       - FROM_EMAIL=noreply@example.com
@@ -177,7 +166,6 @@ services:
     depends_on:
       - temporal
       - mongodb
-      - redis
       - mailhog
       - payment-service
       - document-service
@@ -188,7 +176,6 @@ services:
 volumes:
   temporal-postgres-data:
   mongodb-data:
-  redis-data:
 
 networks:
   default:
