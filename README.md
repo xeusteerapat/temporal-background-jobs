@@ -253,31 +253,6 @@ docker-compose logs -f payment-service
 | Custom orchestration logic | Built-in workflow engine |
 | Operational overhead | Managed infrastructure |
 
-## 🚀 Production Considerations
-
-### Scaling
-- **Horizontal Workers**: Add more worker instances
-- **Database Scaling**: Use MongoDB clusters
-- **Load Balancing**: Use reverse proxy for API services
-
-### Security
-- **Authentication**: Add JWT/OAuth to APIs
-- **Secrets Management**: Use environment-specific secrets
-- **Network Security**: Implement proper firewall rules
-
-### Monitoring
-- **Metrics**: Integrate with Prometheus/Grafana
-- **Logging**: Use structured logging with ELK stack
-- **Alerting**: Set up alerts for workflow failures
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
-
 ## 📚 Learning Resources
 
 - **Temporal Documentation**: https://docs.temporal.io/
