@@ -12,15 +12,15 @@ services:
     volumes:
       - temporal-postgres-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - '5432:5432'
 
   temporal:
     container_name: temporal
     depends_on:
       - temporal-postgresql
-    image: temporalio/auto-setup:1.22.0
+    image: temporalio/auto-setup:1.28.1
     ports:
-      - "7233:7233"
+      - '7233:7233'
     environment:
       - DB=postgresql
       - DB_PORT=5432
@@ -35,9 +35,9 @@ services:
     container_name: temporal-ui
     depends_on:
       - temporal
-    image: temporalio/ui:2.18.0
+    image: temporalio/ui:2.40.0
     ports:
-      - "8080:8080"
+      - '8080:8080'
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CORS_ORIGINS=http://localhost:3000
@@ -47,7 +47,7 @@ services:
     container_name: mongodb
     image: mongo:7.0
     ports:
-      - "27017:27017"
+      - '27017:27017'
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
@@ -61,7 +61,7 @@ services:
     container_name: redis
     image: redis:7.2-alpine
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis-data:/data
 
@@ -70,8 +70,8 @@ services:
     container_name: mailhog
     image: mailhog/mailhog:latest
     ports:
-      - "1025:1025"  # SMTP server
-      - "8025:8025"  # Web UI
+      - '1025:1025' # SMTP server
+      - '8025:8025' # Web UI
 
   # Backend API Service
   backend-api:
@@ -80,7 +80,7 @@ services:
       context: ./backend-api
       dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - '3001:3001'
     environment:
       - PORT=3001
       - NODE_ENV=development
@@ -112,7 +112,7 @@ services:
       context: ./payment-service
       dockerfile: Dockerfile
     ports:
-      - "3002:3002"
+      - '3002:3002'
     environment:
       - PORT=3002
       - NODE_ENV=development
@@ -129,7 +129,7 @@ services:
       context: ./document-service
       dockerfile: Dockerfile
     ports:
-      - "3003:3003"
+      - '3003:3003'
     environment:
       - PORT=3003
       - NODE_ENV=development
@@ -147,7 +147,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - VITE_API_URL=http://localhost:3001
     depends_on:
