@@ -3,6 +3,7 @@ import { Client, Connection } from '@temporalio/client';
 import { applicationProcessingWorkflow } from '../temporal/workflows';
 import { findApplicationById, createApplication } from '../db/mongodb';
 import { faker } from '@faker-js/faker';
+import { logger } from '../libs/logger';
 
 const router: Router = Router();
 
@@ -11,7 +12,9 @@ let temporalClient: Client | null = null;
 async function getTemporalClient(): Promise<Client> {
 	if (!temporalClient) {
 		try {
-			console.log('Connecting to Temporal server at:', process.env.TEMPORAL_ADDRESS || 'localhost:7233');
+			logger.info(
+				`Connecting to Temporal server at: ${process.env.TEMPORAL_ADDRESS || 'localhost:7233'}`
+			);
 
 			const connection = await Connection.connect({
 				address: process.env.TEMPORAL_ADDRESS || 'localhost:7233',
@@ -21,10 +24,13 @@ async function getTemporalClient(): Promise<Client> {
 				connection,
 			});
 
-			console.log('Temporal client connected successfully');
+			logger.info('Temporal client connected successfully');
 		} catch (error) {
-			console.error('Failed to connect to Temporal server:', error);
-			throw new Error('Temporal server unavailable. Please ensure Temporal is running.');
+			logger.error(error, 'Failed to connect to Temporal server:');
+
+			throw new Error(
+				'Temporal server unavailable. Please ensure Temporal is running.'
+			);
 		}
 	}
 
@@ -34,6 +40,7 @@ async function getTemporalClient(): Promise<Client> {
 router.post('/submit', async (req: Request, res: Response) => {
 	try {
 		const { applicationType } = req.body;
+		logger.info(`Starting submit application with: ${applicationType}`);
 
 		// Default to 'loan' if not specified
 		const type = applicationType || 'loan';
@@ -52,15 +59,20 @@ router.post('/submit', async (req: Request, res: Response) => {
 			applicationData: {
 				type,
 				amount: faker.number.int({ min: 10000, max: 500000 }),
-				documents: ['id', 'income_proof', ...(type === 'mortgage' ? ['property_docs'] : [])]
+				documents: [
+					'id',
+					'income_proof',
+					...(type === 'mortgage' ? ['property_docs'] : []),
+				],
 			},
 			status: 'pending' as const,
 			createdAt: new Date(),
-			updatedAt: new Date()
+			updatedAt: new Date(),
 		};
 
 		// Create application in database
 		const application = await createApplication(applicationData);
+		logger.info(`Success create application: ${application.applicationId}`);
 
 		// Start workflow
 		const client = await getTemporalClient();
@@ -82,17 +94,18 @@ router.post('/submit', async (req: Request, res: Response) => {
 				lastName: application.lastName,
 				email: application.email,
 				type: application.applicationData.type,
-				amount: application.applicationData.amount
-			}
+				amount: application.applicationData.amount,
+			},
 		});
 
 		// Don't close connection - reuse it
 	} catch (error: any) {
-		console.error('Error starting workflow:', error);
+		logger.error(error, 'Error starting workflow:');
 
 		let errorMessage = 'Internal server error';
 		if (error.message?.includes('Temporal server unavailable')) {
-			errorMessage = 'Temporal server is not available. Please check if Temporal is running.';
+			errorMessage =
+				'Temporal server is not available. Please check if Temporal is running.';
 		} else if (error.message?.includes('gRPC')) {
 			errorMessage = 'Connection error with Temporal server. Please try again.';
 		}
@@ -126,7 +139,8 @@ router.get('/status/:applicationId', async (req: Request, res: Response) => {
 			},
 		});
 	} catch (error) {
-		console.error('Error getting application status:', error);
+		logger.error(error, 'Error getting application status:');
+
 		res.status(500).json({
 			success: false,
 			error: 'Internal server error',
@@ -151,7 +165,8 @@ router.get('/:applicationId', async (req: Request, res: Response) => {
 			application,
 		});
 	} catch (error) {
-		console.error('Error getting application:', error);
+		logger.error(error, 'Error getting application:');
+
 		res.status(500).json({
 			success: false,
 			error: 'Internal server error',
@@ -164,7 +179,11 @@ router.get('/health/temporal', async (req: Request, res: Response) => {
 	try {
 		const client = await getTemporalClient();
 		// Try to get workflow service info to test connectivity
-		await client.workflowService.getSystemInfo({});
+		const service = await client.workflowService.getSystemInfo({});
+		logger.info({
+			action: 'temporal-health-check-success',
+			data: service.toJSON(),
+		});
 
 		res.json({
 			success: true,
@@ -172,7 +191,8 @@ router.get('/health/temporal', async (req: Request, res: Response) => {
 			address: process.env.TEMPORAL_ADDRESS || 'localhost:7233',
 		});
 	} catch (error: any) {
-		console.error('Temporal health check failed:', error);
+		logger.error(error, 'Temporal health check failed:');
+
 		res.status(503).json({
 			success: false,
 			temporal: 'disconnected',
