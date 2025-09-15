@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getApplicationStatus } from '@/lib/api';
 
 interface StatusTrackerProps {
@@ -30,8 +30,11 @@ export const StatusTracker: React.FC<StatusTrackerProps> = ({
 	const [lastUpdated, setLastUpdated] = useState('');
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState('');
+	const isPollingRef = useRef(true);
 
 	useEffect(() => {
+		let interval: NodeJS.Timeout;
+
 		const pollStatus = async () => {
 			try {
 				const response = await getApplicationStatus(applicationId);
@@ -49,6 +52,8 @@ export const StatusTracker: React.FC<StatusTrackerProps> = ({
 						response.application.status === 'failed'
 					) {
 						setIsLoading(false);
+						isPollingRef.current = false;
+						clearInterval(interval);
 						return;
 					}
 				} else {
@@ -63,10 +68,13 @@ export const StatusTracker: React.FC<StatusTrackerProps> = ({
 		pollStatus();
 
 		// Set up polling interval
-		const interval = setInterval(pollStatus, 3000);
+		interval = setInterval(pollStatus, 3000);
 
 		// Cleanup
-		return () => clearInterval(interval);
+		return () => {
+			clearInterval(interval);
+			isPollingRef.current = false;
+		};
 	}, [applicationId]);
 
 	return (
