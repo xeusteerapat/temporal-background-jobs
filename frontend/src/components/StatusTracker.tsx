@@ -4,6 +4,14 @@ import { getApplicationStatus } from '@/lib/api';
 interface StatusTrackerProps {
   applicationId: string;
   workflowId: string;
+  applicationData?: {
+    applicationId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    type: string;
+    amount: number;
+  };
 }
 
 const statusColors = {
@@ -13,7 +21,7 @@ const statusColors = {
   failed: 'bg-red-100 text-red-800',
 };
 
-export const StatusTracker: React.FC<StatusTrackerProps> = ({ applicationId, workflowId }) => {
+export const StatusTracker: React.FC<StatusTrackerProps> = ({ applicationId, workflowId, applicationData }) => {
   const [status, setStatus] = useState('pending');
   const [lastUpdated, setLastUpdated] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -57,6 +65,17 @@ export const StatusTracker: React.FC<StatusTrackerProps> = ({ applicationId, wor
       <h3 className="text-xl font-bold mb-4">Application Status</h3>
 
       <div className="space-y-3">
+        {applicationData && (
+          <div className="bg-gray-50 p-4 rounded-md space-y-2">
+            <h4 className="font-medium text-gray-900">Application Details</h4>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div><span className="font-medium">Name:</span> {applicationData.firstName} {applicationData.lastName}</div>
+              <div><span className="font-medium">Email:</span> {applicationData.email}</div>
+              <div><span className="font-medium">Type:</span> {applicationData.type}</div>
+              <div><span className="font-medium">Amount:</span> ${applicationData.amount.toLocaleString()}</div>
+            </div>
+          </div>
+        )}
         <div>
           <span className="font-medium">Application ID:</span> {applicationId}
         </div>

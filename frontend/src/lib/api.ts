@@ -6,8 +6,8 @@ const api = axios.create({
   timeout: 10000,
 });
 
-export const submitApplication = async (applicationId: string): Promise<SubmitResponse> => {
-  const response = await api.post('/applications/submit', { applicationId });
+export const submitApplication = async (applicationType: string): Promise<SubmitResponse> => {
+  const response = await api.post('/applications/submit', { applicationType });
   return response.data;
 };
 

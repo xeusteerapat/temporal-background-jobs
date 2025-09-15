@@ -15,9 +15,18 @@ export interface Application {
 
 export interface SubmitResponse {
   success: boolean;
+  applicationId?: string;
   workflowId?: string;
   runId?: string;
   message?: string;
+  application?: {
+    applicationId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    type: string;
+    amount: number;
+  };
   error?: string;
 }
 

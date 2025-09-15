@@ -2,31 +2,25 @@ import React, { useState } from 'react';
 import { submitApplication } from '@/lib/api';
 
 interface ApplicationFormProps {
-  onSubmit: (workflowId: string, applicationId: string) => void;
+  onSubmit: (workflowId: string, applicationId: string, applicationData: any) => void;
 }
 
 export const ApplicationForm: React.FC<ApplicationFormProps> = ({ onSubmit }) => {
-  const [applicationId, setApplicationId] = useState('');
+  const [applicationType, setApplicationType] = useState('loan');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!applicationId.trim()) {
-      setError('Application ID is required');
-      return;
-    }
-
     setIsLoading(true);
     setError('');
 
     try {
-      const response = await submitApplication(applicationId.trim());
+      const response = await submitApplication(applicationType);
 
-      if (response.success && response.workflowId) {
-        onSubmit(response.workflowId, applicationId.trim());
-        setApplicationId('');
+      if (response.success && response.workflowId && response.applicationId) {
+        onSubmit(response.workflowId, response.applicationId, response.application);
       } else {
         setError(response.error || 'Failed to submit application');
       }
@@ -43,20 +37,23 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ onSubmit }) =>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="applicationId" className="block text-sm font-medium text-gray-700 mb-2">
-            Application ID
+          <label htmlFor="applicationType" className="block text-sm font-medium text-gray-700 mb-2">
+            Application Type
           </label>
-          <input
-            type="text"
-            id="applicationId"
-            value={applicationId}
-            onChange={(e) => setApplicationId(e.target.value)}
-            placeholder="Enter application ID (e.g., app-001)"
+          <select
+            id="applicationType"
+            value={applicationType}
+            onChange={(e) => setApplicationType(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={isLoading}
-          />
+          >
+            <option value="loan">Personal Loan</option>
+            <option value="mortgage">Mortgage</option>
+            <option value="business">Business Loan</option>
+            <option value="auto">Auto Loan</option>
+          </select>
           <p className="text-sm text-gray-500 mt-1">
-            Use "app-001" or "app-002" for demo data
+            A new application will be created with random fake data
           </p>
         </div>
 

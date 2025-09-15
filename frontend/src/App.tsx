@@ -6,10 +6,11 @@ function App() {
   const [activeWorkflow, setActiveWorkflow] = useState<{
     workflowId: string;
     applicationId: string;
+    applicationData?: any;
   } | null>(null);
 
-  const handleSubmit = (workflowId: string, applicationId: string) => {
-    setActiveWorkflow({ workflowId, applicationId });
+  const handleSubmit = (workflowId: string, applicationId: string, applicationData: any) => {
+    setActiveWorkflow({ workflowId, applicationId, applicationData });
   };
 
   const handleReset = () => {
@@ -38,6 +39,7 @@ function App() {
               <StatusTracker
                 applicationId={activeWorkflow.applicationId}
                 workflowId={activeWorkflow.workflowId}
+                applicationData={activeWorkflow.applicationData}
               />
 
               <div className="flex justify-center">
@@ -56,8 +58,8 @@ function App() {
             <div className="text-sm text-gray-600 space-y-1">
               <p>• <strong>Temporal UI:</strong> <a href="http://localhost:8080" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">http://localhost:8080</a></p>
               <p>• <strong>MailHog (Email Testing):</strong> <a href="http://localhost:8025" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">http://localhost:8025</a></p>
-              <p>• <strong>Backend API Health:</strong> <a href="/api/applications/status/app-001" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Test API</a></p>
-              <p>• <strong>Demo Applications:</strong> app-001, app-002</p>
+              <p>• <strong>Backend API Health:</strong> <a href="http://localhost:3001/health" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Test API</a></p>
+              <p>• <strong>Application Types:</strong> Personal Loan, Mortgage, Business Loan, Auto Loan</p>
             </div>
           </div>
         </div>
