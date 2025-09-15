@@ -6,17 +6,26 @@ import { faker } from '@faker-js/faker';
 
 const router: Router = Router();
 
-let temporalClient: Client;
+let temporalClient: Client | null = null;
 
 async function getTemporalClient(): Promise<Client> {
-	const connection = await Connection.connect({
-		address: process.env.TEMPORAL_ADDRESS || 'localhost:7233',
-	});
-
 	if (!temporalClient) {
-		temporalClient = new Client({
-			connection,
-		});
+		try {
+			console.log('Connecting to Temporal server at:', process.env.TEMPORAL_ADDRESS || 'localhost:7233');
+
+			const connection = await Connection.connect({
+				address: process.env.TEMPORAL_ADDRESS || 'localhost:7233',
+			});
+
+			temporalClient = new Client({
+				connection,
+			});
+
+			console.log('Temporal client connected successfully');
+		} catch (error) {
+			console.error('Failed to connect to Temporal server:', error);
+			throw new Error('Temporal server unavailable. Please ensure Temporal is running.');
+		}
 	}
 
 	return temporalClient;
@@ -77,12 +86,20 @@ router.post('/submit', async (req: Request, res: Response) => {
 			}
 		});
 
-		await client.connection.close();
-	} catch (error) {
+		// Don't close connection - reuse it
+	} catch (error: any) {
 		console.error('Error starting workflow:', error);
+
+		let errorMessage = 'Internal server error';
+		if (error.message?.includes('Temporal server unavailable')) {
+			errorMessage = 'Temporal server is not available. Please check if Temporal is running.';
+		} else if (error.message?.includes('gRPC')) {
+			errorMessage = 'Connection error with Temporal server. Please try again.';
+		}
+
 		res.status(500).json({
 			success: false,
-			error: 'Internal server error',
+			error: errorMessage,
 		});
 	}
 });
@@ -138,6 +155,28 @@ router.get('/:applicationId', async (req: Request, res: Response) => {
 		res.status(500).json({
 			success: false,
 			error: 'Internal server error',
+		});
+	}
+});
+
+// Health check for Temporal connectivity
+router.get('/health/temporal', async (req: Request, res: Response) => {
+	try {
+		const client = await getTemporalClient();
+		// Try to get workflow service info to test connectivity
+		await client.workflowService.getSystemInfo({});
+
+		res.json({
+			success: true,
+			temporal: 'connected',
+			address: process.env.TEMPORAL_ADDRESS || 'localhost:7233',
+		});
+	} catch (error: any) {
+		console.error('Temporal health check failed:', error);
+		res.status(503).json({
+			success: false,
+			temporal: 'disconnected',
+			error: error.message || 'Temporal connection failed',
 		});
 	}
 });

@@ -20,12 +20,26 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/applications', applicationsRouter);
 
 // Health check
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    service: 'backend-api'
-  });
+app.get('/health', async (req, res) => {
+  try {
+    // Check database connection
+    const { getApplicationsCollection } = await import('./db/mongodb');
+    await getApplicationsCollection().findOne({}, { limit: 1 });
+
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      service: 'backend-api',
+      database: 'connected'
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      service: 'backend-api',
+      error: 'Database connection failed'
+    });
+  }
 });
 
 // Error handling middleware
