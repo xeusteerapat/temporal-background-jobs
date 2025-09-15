@@ -55,7 +55,7 @@ export async function callPaymentService(paymentRequest: PaymentRequest): Promis
 
   try {
     const response = await axios.post(
-      `${process.env.PAYMENT_SERVICE_URL}/api/payment/process`,
+      `${process.env.PAYMENT_SERVICE_URL}/api/payment/submit`,
       paymentRequest,
       {
         timeout: 30000,
@@ -82,7 +82,7 @@ export async function callDocumentService(documentRequest: DocumentRequest): Pro
 
   try {
     const response = await axios.post(
-      `${process.env.DOCUMENT_SERVICE_URL}/api/document/generate`,
+      `${process.env.DOCUMENT_SERVICE_URL}/api/document/submit`,
       documentRequest,
       {
         timeout: 30000,

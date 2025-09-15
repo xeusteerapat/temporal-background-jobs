@@ -1,0 +1,18 @@
+# Temporal dynamic configuration for development
+system.forceSearchAttributesCacheRefreshOnRead:
+  - value: true
+
+frontend.enableClientVersionCheck:
+  - value: true
+
+history.maxAutoResetPoints:
+  - value: 20
+
+limit.maxIDLength:
+  - value: 1000
+
+system.enableActivityEagerExecution:
+  - value: true
+
+worker.buildIdScavengerEnabled:
+  - value: true
