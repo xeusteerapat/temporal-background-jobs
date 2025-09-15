@@ -1,0 +1,1 @@
+export { applicationProcessingWorkflow } from './application-processing';

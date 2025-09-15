@@ -1,0 +1,35 @@
+{
+  "name": "backend-api",
+  "version": "1.0.0",
+  "description": "Backend API service with Temporal workflows",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "worker": "tsx src/temporal/worker.ts",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "dependencies": {
+    "@temporalio/client": "^1.11.3",
+    "@temporalio/worker": "^1.11.3",
+    "@temporalio/workflow": "^1.11.3",
+    "@temporalio/activity": "^1.11.3",
+    "express": "^4.21.1",
+    "mongodb": "^6.10.0",
+    "axios": "^1.7.7",
+    "nodemailer": "^6.9.15",
+    "cors": "^2.8.5",
+    "helmet": "^8.0.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.7.5",
+    "@types/nodemailer": "^6.4.16",
+    "@types/cors": "^2.8.17",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3",
+    "prettier": "^3.3.3"
+  }
+}
