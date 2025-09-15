@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { Client } from '@temporalio/client';
+import { Client, Connection } from '@temporalio/client';
 import { applicationProcessingWorkflow } from '../temporal/workflows';
 import { findApplicationById } from '../db/mongodb';
 
@@ -8,13 +8,16 @@ const router: Router = Router();
 let temporalClient: Client;
 
 async function getTemporalClient(): Promise<Client> {
+	const connection = await Connection.connect({
+		address: process.env.TEMPORAL_ADDRESS || 'localhost:7233',
+	});
+
 	if (!temporalClient) {
 		temporalClient = new Client({
-			connection: {
-				address: process.env.TEMPORAL_ADDRESS || 'localhost:7233',
-			},
+			connection,
 		});
 	}
+
 	return temporalClient;
 }
 
@@ -59,6 +62,8 @@ router.post('/submit', async (req: Request, res: Response) => {
 			runId: handle.firstExecutionRunId,
 			message: 'Application processing started',
 		});
+
+		await client.connection.close();
 	} catch (error) {
 		console.error('Error starting workflow:', error);
 		res.status(500).json({
