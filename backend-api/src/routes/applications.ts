@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { Client, Connection } from '@temporalio/client';
 import { applicationProcessingWorkflow } from '../temporal/workflows';
-import { findApplicationById } from '../db/mongodb';
+import { findApplicationById, createApplication } from '../db/mongodb';
+import { faker } from '@faker-js/faker';
 
 const router: Router = Router();
 
@@ -23,30 +24,34 @@ async function getTemporalClient(): Promise<Client> {
 
 router.post('/submit', async (req: Request, res: Response) => {
 	try {
-		const { applicationId } = req.body;
+		const { applicationType } = req.body;
 
-		if (!applicationId) {
-			return res.status(400).json({
-				success: false,
-				error: 'applicationId is required',
-			});
-		}
+		// Default to 'loan' if not specified
+		const type = applicationType || 'loan';
 
-		// Verify application exists
-		const application = await findApplicationById(applicationId);
-		if (!application) {
-			return res.status(404).json({
-				success: false,
-				error: 'Application not found',
-			});
-		}
+		// Generate fake application data
+		const applicationId = `app-${faker.string.alphanumeric(8)}`;
+		const firstName = faker.person.firstName();
+		const lastName = faker.person.lastName();
+		const email = faker.internet.email({ firstName, lastName });
 
-		if (application.status !== 'pending') {
-			return res.status(400).json({
-				success: false,
-				error: `Application is already ${application.status}`,
-			});
-		}
+		const applicationData = {
+			applicationId,
+			firstName,
+			lastName,
+			email,
+			applicationData: {
+				type,
+				amount: faker.number.int({ min: 10000, max: 500000 }),
+				documents: ['id', 'income_proof', ...(type === 'mortgage' ? ['property_docs'] : [])]
+			},
+			status: 'pending' as const,
+			createdAt: new Date(),
+			updatedAt: new Date()
+		};
+
+		// Create application in database
+		const application = await createApplication(applicationData);
 
 		// Start workflow
 		const client = await getTemporalClient();
@@ -58,9 +63,18 @@ router.post('/submit', async (req: Request, res: Response) => {
 
 		res.json({
 			success: true,
+			applicationId,
 			workflowId: handle.workflowId,
 			runId: handle.firstExecutionRunId,
-			message: 'Application processing started',
+			message: 'Application created and processing started',
+			application: {
+				applicationId: application.applicationId,
+				firstName: application.firstName,
+				lastName: application.lastName,
+				email: application.email,
+				type: application.applicationData.type,
+				amount: application.applicationData.amount
+			}
 		});
 
 		await client.connection.close();

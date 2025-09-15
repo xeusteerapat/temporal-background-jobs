@@ -50,3 +50,15 @@ export async function updateApplicationStatus(
     }
   );
 }
+
+export async function createApplication(application: Omit<Application, '_id'>): Promise<Application> {
+  const collection = getApplicationsCollection();
+  const result = await collection.insertOne(application as Application);
+
+  const createdApplication = await collection.findOne({ _id: result.insertedId });
+  if (!createdApplication) {
+    throw new Error('Failed to create application');
+  }
+
+  return createdApplication;
+}
